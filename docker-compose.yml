@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    container_name: backend
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app
+    environment:
+      - ENVIRONMENT=development
+      - DB_USER=postgres
+      - DB_HOST=172.18.0.2
+      - DB_PORT=5432
+      - DB_NAME=main
+      - DB_PASS=postgres
+      - DATABASE_URL=postgres://postgres:postgres@172.18.0.3:5432/main  # Ensure this is correct
+      - RUST_BACKTRACE=full
+    ports:
+      - "8080:8080"
+    command: >
+      /bin/sh -c "
+        while ! nc -z 172.18.0.3 5432; do
+          echo waiting for database;
+          sleep 2;
+        done;
+        sleep 5;  # Add extra delay to allow Postgres to be ready
+        cd /usr/src/app;
+        export DATABASE_URL=postgres://postgres:postgres@172.18.0.3:5432/main;
+        echo Started connected to database on postgres://postgres:postgres@172.18.0.3:5432/main;
+        diesel migration run --database-url=postgres://postgres:postgres@172.18.0.3:5432/main;
+        cd /usr/local/bin/ && ./backend
+      "
+
+  swagger:
+    build:
+      context: middleware/swagger-ui
+      dockerfile: Dockerfile
+    environment:
+      - API_KEY=**None**
+      - SWAGGER_JSON=/app/swagger.json
+      - PORT=8080
+      - PORT_IPV6=
+      - BASE_URL=/
+      - SWAGGER_JSON_URL=
+      - CORS=true
+      - EMBEDDING=false
+      - API_URL=backend:8080/api-doc/openapi.json
+    ports:
+      - "8081:8080"
+
+#  frontend:
+#     build:
+#       context: frontend_main
+#       dockerfile: Dockerfile
+#     container_name: frontend_main
+#     volumes:
+#       - ./frontend_main:/app
+#     ports:
+#       - "3000:3000"
+#     depends_on:
+#       - backend
+
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=main
+    ports:
+      - "5433:5432"  # Change the host port to 5433
