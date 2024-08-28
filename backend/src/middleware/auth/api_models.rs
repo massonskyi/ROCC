@@ -17,3 +17,11 @@ pub struct SignUpRequest{
     pub role: String, 
     pub avatar: String,
 }
+
+
+
+
+#[derive(Serialize)]
+pub struct ErrorResponse {
+    pub error: String,
+}

@@ -46,12 +46,12 @@ pub fn init(cfg: &mut web::ServiceConfig){
         (status = 200, description= "successful response", body=UserManager)
     )
 )]
-
-// #[get("/users")]
-async fn get_users(data: web::Data<UserManager>) -> impl Responder{
-    let users = data.list_users().await;
+async fn get_users(data: web::Data<Arc<RwLock<UserManager>>>) -> impl Responder {
+    let manager = data.read().await;
+    let users = manager.list_users().await;
     HttpResponse::Ok().json(users)
 }
+
 #[utoipa::path(
     post,
     path = "/users",

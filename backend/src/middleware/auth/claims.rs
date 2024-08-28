@@ -13,7 +13,6 @@ pub struct Claims {
     pub sub: i32,
     pub exp: usize,
 }
-
 pub async fn validate(
     req: ServiceRequest,
     credentials: BearerAuth,

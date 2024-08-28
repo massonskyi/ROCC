@@ -56,10 +56,10 @@ impl AsyncLogger{
         // settings fern for async logs
         Dispatch::new()
         .format(|out, message, record|{
-            let time = Local::now().format("%Y-%m-%d %H:%M:%S");
+            let time = Local::now().format("%Y-%m-%d %H:%M:%S").to_string().purple();
             let level = record.level();
-            let target = record.target();
-
+            let target = record.target().to_string().cyan();
+            let msg = message.to_string().green();
 
             let colored_level = match level{
                 log::Level::Error => level.to_string().red(),
@@ -71,7 +71,7 @@ impl AsyncLogger{
 
             out.finish(format_args!(
                 "{} [{}] {}: {}",
-                time, colored_level, target, message
+                time, colored_level, target, msg
             ));
         })
         .chain(std::io::stdout()) // input in console

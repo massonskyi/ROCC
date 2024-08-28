@@ -1,6 +1,6 @@
 use actix_cors::Cors;
 use actix_files::Files;
-use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{http::header, web, App, HttpResponse, HttpServer, Responder};
 use actix_web_httpauth::middleware::HttpAuthentication;
 
 use std::{error::Error, io, sync::Arc};
@@ -30,7 +30,18 @@ use middleware::
 };
 
 async fn render_start_page() -> &'static str {
-    "Hello on start page!\ngo to \\tracks or \\users or \\playlists"
+    r#"
+    <html>
+        <body>
+            <h1>Hello on start page!</h1>
+            <p>Go to the following pages:</p>
+            <ul>
+                <li><a href="/users">Users</a></li>
+                <li><a href="/api-doc/openapi.json">API</a></li>
+            </ul>
+        </body>
+    </html>
+    "#
 }
 
 async fn index() -> impl Responder {
@@ -81,10 +92,12 @@ async fn main() -> std::io::Result<()>{
             .app_data(web::Data::new(user_manager.clone()))
             .wrap(
                 Cors::default()
-                    .allow_any_origin()
-                    .allow_any_method()
-                    .allow_any_header()
-                    .max_age(3600)
+                .allow_any_origin()
+                .allow_any_method()
+                .allow_any_header()
+                .max_age(3600)
+                .supports_credentials() // Поддержка отправки куки
+                    
             )
             .configure(handlers::init)
             .route("/", web::get().to(index))
