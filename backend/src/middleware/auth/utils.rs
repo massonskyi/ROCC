@@ -1,7 +1,14 @@
 use std::io::Error;
+use actix_service::{Service, Transform};
+use actix_web::{body::{BoxBody, MessageBody}, dev::{ServiceRequest, ServiceResponse}, HttpResponse};
 use bcrypt::{hash, verify, DEFAULT_COST};
 use rand::{thread_rng, Rng};
-
+use jsonwebtoken::{encode, Header, EncodingKey};
+use chrono::Utc;
+use futures::future::{ok, LocalBoxFuture, Ready};
+use futures::FutureExt;
+use std::task::{Context, Poll};
+use super::claims::Claims;
 pub struct PasswordManager;
 
 impl PasswordManager{
@@ -32,3 +39,32 @@ impl PasswordManager{
         verify(pwd, hashed_pwd)
     }
 }
+
+pub async fn generate_token(user_id: i32) -> Result<String, String> {
+    let claims = Claims {
+        sub: user_id,
+        exp: (Utc::now() + chrono::Duration::hours(24)).timestamp() as usize,
+    };
+
+    match encode(
+        &Header::default(),
+        &claims,
+        &EncodingKey::from_secret(b"10"),
+    ) {
+        Ok(token) => Ok(token),
+        Err(e) => Err(format!("Failed to generate token: {}", e)),
+    }
+}
+
+use jsonwebtoken::{decode, DecodingKey, Validation};
+
+pub async fn verify_token(token: &str) -> Result<Claims, String> {
+    let decoding_key = DecodingKey::from_secret(b"10");
+    let validation = Validation::default();
+
+    match decode::<Claims>(token, &decoding_key, &validation) {
+        Ok(decoded) => Ok(decoded.claims),
+        Err(e) => Err(format!("Token verification failed: {}", e)),
+    }
+}
+

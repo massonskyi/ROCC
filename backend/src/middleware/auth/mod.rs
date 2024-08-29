@@ -5,3 +5,4 @@ pub mod models;
 pub mod utils;
 pub mod api_models;
 pub mod api;
+pub mod auth_middleware;

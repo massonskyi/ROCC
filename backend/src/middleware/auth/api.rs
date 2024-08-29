@@ -69,21 +69,14 @@ pub async fn sign_in(
             return HttpResponse::InternalServerError().finish();
         },
     };
-
-    // Create a cookie with the token
-    let cookie = Cookie::build("auth_token", token.clone())
-        .path("/") // Make the cookie available site-wide
-        .http_only(true) // Protect against XSS
-        .secure(false) // Используйте false, если тестируете на HTTP
-        .same_site(SameSite::None)  // Allow cross-site requests
-        .finish();
+;
 
     // Проверка и установка куки
     let cookie = Cookie::build("auth_token", token.clone())
         .path("/") // Доступен на всем сайте
         .http_only(true) // Доступен только для HTTP
         .secure(false) // Используйте true для HTTPS
-        .same_site(SameSite::None) // Разрешить кросс-сайтовые запросы
+        .same_site(SameSite::Lax) // Разрешить кросс-сайтовые запросы
         .finish();
 
     let response = HttpResponse::Ok()
@@ -159,12 +152,11 @@ pub async fn sign_up(
         },
     };
 
-    // Проверка и установка куки
     let cookie = Cookie::build("auth_token", token.clone())
         .path("/") // Доступен на всем сайте
         .http_only(true) // Доступен только для HTTP
         .secure(false) // Используйте true для HTTPS
-        .same_site(SameSite::None) // Разрешить кросс-сайтовые запросы
+        .same_site(SameSite::Lax) // Разрешить кросс-сайтовые запросы
         .finish();
 
     let response = HttpResponse::Ok()

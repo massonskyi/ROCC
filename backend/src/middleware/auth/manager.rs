@@ -18,7 +18,7 @@ fn from_timestamp_string(timestamp: &str) -> DateTime<Utc> {
 
 #[derive(utoipa::ToSchema)]
 pub struct UserManager {
-    pool: Arc<Mutex<Client>>,
+    pub pool: Arc<Mutex<Client>>,
 }
 
 impl Clone for UserManager {
